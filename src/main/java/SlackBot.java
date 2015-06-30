@@ -1,5 +1,6 @@
 import com.ullink.slack.simpleslackapi.SlackSession;
 import com.ullink.slack.simpleslackapi.events.SlackMessagePosted;
+import com.ullink.slack.simpleslackapi.impl.SlackChatConfiguration;
 import com.ullink.slack.simpleslackapi.impl.SlackSessionFactory;
 import com.ullink.slack.simpleslackapi.listeners.SlackMessagePostedListener;
 import redis.clients.jedis.Jedis;
@@ -48,7 +49,9 @@ public class SlackBot {
                         temp = temp.replace("level", "");
                         if(!temp.isEmpty()){
                             if(add){
-                                session.sendMessageOverWebSocket(session.findChannelByName("general"), "<@" + temp + "> is on the rise! (Karma: " + incrementKarma(temp.toUpperCase()) + ")", null);
+                                SlackChatConfiguration test = SlackChatConfiguration.getConfiguration().asUser();
+                                test.withName("GROG THE IMMORTAL");
+                                session.sendMessage(session.findChannelByName("general"), "<@" + temp + "> is on the rise! (Karma: " + incrementKarma(temp.toUpperCase()) + ")", null, test);
                             }
                             else if(subtract){
                                 session.sendMessageOverWebSocket(session.findChannelByName("general"), "<@" + temp + "> is slipping! (Karma: " + decrementKarma(temp.toUpperCase()) + ")", null);
