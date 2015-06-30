@@ -13,81 +13,114 @@ import java.io.IOException;
 public class SlackBot {
 
     private String apiKey;
+    private Boolean readBook;
+    private Boolean manageKarma;
+    private Boolean tellJokes;
+
+    private SlackSession session;
+    private JedisClient jedisClient;
+
+    private List<SlackCommandProcessor> commandProcessors;
 
     public SlackBot(String apiKey){
         this.apiKey = apiKey;
+        setReadBook(true);
+        setManageKarma(true);
+        setTellJokes(true);
+        commandProcessors = new ArrayList<>();
+
+        init();
     }
 
-    public static void main(String[] args) throws IOException {
-
-        SlackBot slackBot = new SlackBot("xoxb-6635722290-kkS2XjX1cTZ72NI3KJV3Uz3p");
-
-        SlackSession session = SlackSessionFactory.createWebSocketSlackSession("xoxb-6635722290-kkS2XjX1cTZ72NI3KJV3Uz3p");
+    private init(){
+        session = SlackSessionFactory.createWebSocketSlackSession("xoxb-6635722290-kkS2XjX1cTZ72NI3KJV3Uz3p");
         session.connect();
 
-        session.addMessagePostedListener(new SlackMessagePostedListener()
-        {
+        jedisClient = new JedisClient("eclipse-serv-03.eclipsesoftworks.com", 6379);
+
+        session.addMessagePostedListener(new SlackMessagePostedListener(){
             @Override
-            public void onEvent(SlackMessagePosted event, SlackSession session)
-            {
-                if(event.getMessageContent().contains("@") && !event.getSender().getUserName().equalsIgnoreCase("karmabot")){
-                    //Find users
-                    String convertedMessage = event.getMessageContent().replace(" ", "@").replace("<", "").replace(">", "");
-                    String[] names = convertedMessage.split("@");
+            public void onEvent(SlackMessagePosted event, SlackSession session){
+                processEvent(event, session);
+            }
+        }
+    }
 
-                    //Find operation
-                    boolean add = convertedMessage.contains("++");
-                    boolean subtract = convertedMessage.contains("--");
-                    boolean level = convertedMessage.contains("level");
-                    if(!add && !subtract && !level){
-                        return;
-                    }
-                    for(String temp: names){
-                        temp = temp.replace(":", "");
-                        temp = temp.replace("--", "");
-                        temp = temp.replace("++", "");
-                        temp = temp.replace("level", "");
-                        if(!temp.isEmpty()){
-                            if(add){
-                                SlackChatConfiguration test = SlackChatConfiguration.getConfiguration().asUser();
-                                test.withName("GROG THE IMMORTAL");
-                                session.sendMessage(session.findChannelByName("general"), "<@" + temp + "> is on the rise! (Karma: " + incrementKarma(temp.toUpperCase()) + ")", null, test);
-                            }
-                            else if(subtract){
-                                session.sendMessageOverWebSocket(session.findChannelByName("general"), "<@" + temp + "> is slipping! (Karma: " + decrementKarma(temp.toUpperCase()) + ")", null);
-                            }
-                            else if(level){
-                                session.sendMessageOverWebSocket(session.findChannelByName("general"), "<@" + temp + "> has " + getKarma(temp.toUpperCase()) + " Karma!", null);
-                            }
-                        }
-                    }
+    public void setReadBook(Boolean readBook){
+        this.readBook = readBook;
+    }
+
+    public void setManageKarma(Boolean manageKarma){
+        this.manageKarma = manageKarma;
+    }
+
+    public void setTellJokes(Boolean tellJokes){
+        this.tellJokes = tellJokes;
+    }
+
+    private processEvent(SlackMessagePosted event, SlackSession session){
+        //TODO::
+        for(SlackCommandProcessor temp : commandProcessors){
+            temp.processCommand(event, session);
+        }
 
 
-                }
-                else if(event.getMessageContent().toLowerCase().contains("joke")){
-                    try {
-                        session.sendMessageOverWebSocket(session.findChannelByName("general"), getRandomJoke(), null);
+
+        if(event.getMessageContent().contains("@") && !event.getSender().getUserName().equalsIgnoreCase("karmabot")){
+            //Find users
+            String convertedMessage = event.getMessageContent().replace(" ", "@").replace("<", "").replace(">", "");
+            String[] names = convertedMessage.split("@");
+
+            //Find operation
+            boolean add = convertedMessage.contains("++");
+            boolean subtract = convertedMessage.contains("--");
+            boolean level = convertedMessage.contains("level");
+            if(!add && !subtract && !level){
+                return;
+            }
+            for(String temp: names){
+                temp = temp.replace(":", "");
+                temp = temp.replace("--", "");
+                temp = temp.replace("++", "");
+                temp = temp.replace("level", "");
+                if(!temp.isEmpty()){
+                    if(add){
+                        SlackChatConfiguration test = SlackChatConfiguration.getConfiguration().asUser();
+                        test.withName("GROG THE IMMORTAL");
+                        session.sendMessage(session.findChannelByName("general"), "<@" + temp + "> is on the rise! (Karma: " + incrementKarma(temp.toUpperCase()) + ")", null, test);
                     }
-                    catch (Exception err){
-                        err.printStackTrace();
+                    else if(subtract){
+                        session.sendMessageOverWebSocket(session.findChannelByName("general"), "<@" + temp + "> is slipping! (Karma: " + decrementKarma(temp.toUpperCase()) + ")", null);
+                    }
+                    else if(level){
+                        session.sendMessageOverWebSocket(session.findChannelByName("general"), "<@" + temp + "> has " + getKarma(temp.toUpperCase()) + " Karma!", null);
                     }
                 }
             }
 
 
-        });
+        }
+        else if(event.getMessageContent().toLowerCase().contains("joke")){
+            try {
+                session.sendMessageOverWebSocket(session.findChannelByName("general"), getRandomJoke(), null);
+            }
+            catch (Exception err){
+                err.printStackTrace();
+            }
+        }
+    }
+
+
+
+    public static void main(String[] args) throws IOException {
+
+        SlackBot slackBot = new SlackBot("xoxb-6635722290-kkS2XjX1cTZ72NI3KJV3Uz3p");
 
     }
 
-    private static Jedis jedisClient = new Jedis("eclipse-serv-03.eclipsesoftworks.com", 6379);
+    
 
-    public static Boolean doesKeyExist(String key){
-       return jedisClient.get(key) != null;
-    }
-
-    public static void storeKey(String key, String value){
-        jedisClient.set(key, value);
-    }
+    
 
     public static Integer incrementKarma(String user){
         Integer value = 0;
