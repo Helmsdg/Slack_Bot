@@ -30,9 +30,6 @@ public class KarmaProcessor implements SlackCommandProcessor {
                 temp = temp.replace("level", "");
                 if(!temp.isEmpty()){
                     if(add){
-                        //SlackChatConfiguration test = SlackChatConfiguration.getConfiguration().asUser();
-                        //test.withName("GROG THE IMMORTAL");
-                        //session.sendMessage(session.findChannelByName("general"), "<@" + temp + "> is on the rise! (Karma: " + incrementKarma(temp.toUpperCase()) + ")", null, test);
                         session.sendMessageOverWebSocket(session.findChannelByName("general"), "<@" + temp + "> is on the rise! (Karma: " + incrementKarma(temp.toUpperCase(), jedisClient) + ")", null);
                     }
                     else if(subtract){
