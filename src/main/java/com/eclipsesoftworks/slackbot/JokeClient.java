@@ -1,4 +1,6 @@
-import model.Joke;
+package com.eclipsesoftworks.slackbot;
+
+import com.eclipsesoftworks.slackbot.model.Joke;
 
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.WebTarget;

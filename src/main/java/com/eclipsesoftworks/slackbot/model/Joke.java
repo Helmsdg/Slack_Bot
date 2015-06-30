@@ -1,4 +1,4 @@
-package model;
+package com.eclipsesoftworks.slackbot.model;
 
 import com.fasterxml.jackson.annotation.*;
 
