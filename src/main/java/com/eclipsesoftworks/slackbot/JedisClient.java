@@ -10,13 +10,13 @@ public class JedisClient {
 	private String connectionURL;
 	private Integer port;
 
-	private static Jedis jedisClient;// = new Jedis("eclipse-serv-03.eclipsesoftworks.com", 6379);
+	private static Jedis jedisClient;
 
     private static JedisClient singleton;
 
     public static JedisClient getInstance(){
         if(singleton == null){
-            singleton = new JedisClient("eclipse-serv-03.eclipsesoftworks.com", 6379);
+            singleton = new JedisClient("eclipse-serv-03", 6379);
         }
         return singleton;
     }
