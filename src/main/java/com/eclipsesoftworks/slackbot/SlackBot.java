@@ -63,7 +63,7 @@ public class SlackBot {
     }
 
     public static void main(String[] args) throws IOException {
-        SlackBot slackBot = new SlackBot("xoxb-6635722290-kkS2XjX1cTZ72NI3KJV3Uz3p");
+        SlackBot slackBot = new SlackBot("<key>");
         slackBot.addProcessor(new JokeProcessor());
         slackBot.addProcessor(new KarmaProcessor());
 
